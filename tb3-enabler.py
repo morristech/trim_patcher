@@ -209,9 +209,28 @@ def do_force_apply():
     perform_backup()
     with open(target, 'rb') as f:
         source_data = f.read()
-    search_re = "\x55\x48\x89\xE5\x41\x57\x41\x56\x41\x55\x41\x54\x53\x48\x81\xEC\x38\x01"
-    replace_re = "\x55\x48\x89\xE5\x31\xC0\x5D\xC3\x41\x55\x41\x54\x53\x48\x81\xEC\x38\x01"
-    patched_data = re.sub(search_re, replace_re, source_data)
+
+    search_re1012 =  "\x55\x48\x89\xE5\x41\x57\x41\x56\x41\x55\x41\x54\x53\x48\x81\xEC\x38\x01"
+    replace_re1012 = "\x55\x48\x89\xE5\x31\xC0\x5D\xC3\x41\x55\x41\x54\x53\x48\x81\xEC\x38\x01"
+
+    search_re1013 =  "\x55\x48\x89\xE5\x41\x57\x41\x56\x41\x55\x41\x54\x53\x48\x81\xEC\x28\x01"
+    replace_re1013 = "\x55\x48\x89\xE5\x31\xC0\x5D\xC3\x41\x55\x41\x54\x53\x48\x81\xEC\x28\x01"
+
+    for replace in [replace_re1012, replace_re1013]:
+        if (source_data.find(replace) != -1):
+            print ("Looks like file is already patched, aborting")
+            sys.exit(1)
+
+    if (source_data.find(search_re1012) != -1):
+        patched_data = source_data.replace(search_re1012, replace_re1012)
+    else:
+        print ("Could not location to  patch for 10.12, trying for 10.13")
+        if (source_data.find(search_re1013) != -1):
+            patched_data = source_data.replace(search_re1013, replace_re1013)
+        else:
+            print ("10.13 also not found, exiting")
+            sys.exit(1)
+
     with open(target, 'wb') as out:
         out.write(patched_data)
     h = md5(target)
